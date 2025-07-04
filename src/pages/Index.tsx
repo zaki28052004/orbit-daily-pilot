@@ -6,6 +6,8 @@ import { Calendar, Cloud, Sparkles, Clock, Sun } from "lucide-react";
 import TaskInputForm from "@/components/TaskInputForm";
 
 const Index = () => {
+  console.log('Index component rendering');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <SignedOut>
@@ -19,6 +21,8 @@ const Index = () => {
 };
 
 const LandingPage = () => {
+  console.log('LandingPage component rendering');
+  
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-4xl mx-auto text-center">
@@ -101,6 +105,8 @@ const LandingPage = () => {
 };
 
 const Dashboard = () => {
+  console.log('Dashboard component rendering');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <header className="bg-white border-b border-gray-200 shadow-sm">
