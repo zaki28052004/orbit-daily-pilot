@@ -319,11 +319,16 @@ const Dashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const addTask = (taskData: Omit<Task, "id">) => {
+    console.log('Adding task:', taskData);
     const newTask: Task = {
       ...taskData,
       id: Date.now().toString(),
     };
-    setTasks(prev => [...prev, newTask]);
+    setTasks(prev => {
+      const updatedTasks = [...prev, newTask];
+      console.log('Updated tasks:', updatedTasks);
+      return updatedTasks;
+    });
   };
 
   const deleteTask = (id: string) => {
@@ -445,7 +450,9 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim() && duration) {
+    console.log('Form submitted with:', { title, duration, importance });
+    
+    if (title.trim() && duration && parseInt(duration) > 0) {
       onAddTask({
         title: title.trim(),
         duration: parseInt(duration),
@@ -454,6 +461,9 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
       setTitle("");
       setDuration("");
       setImportance("medium");
+      console.log('Task added successfully');
+    } else {
+      console.log('Form validation failed');
     }
   };
 
@@ -468,7 +478,10 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           <Input
             placeholder="Task title..."
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              console.log('Title changed:', e.target.value);
+              setTitle(e.target.value);
+            }}
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
           />
         </div>
@@ -477,10 +490,16 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             type="number"
             placeholder="Duration (min)"
             value={duration}
-            onChange={(e) => setDuration(e.target.value)}
+            onChange={(e) => {
+              console.log('Duration changed:', e.target.value);
+              setDuration(e.target.value);
+            }}
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
           />
-          <Select value={importance} onValueChange={(value: "low" | "medium" | "high") => setImportance(value)}>
+          <Select value={importance} onValueChange={(value: "low" | "medium" | "high") => {
+            console.log('Importance changed:', value);
+            setImportance(value);
+          }}>
             <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300">
               <SelectValue />
             </SelectTrigger>
@@ -492,7 +511,11 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           </Select>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all duration-300 hover:shadow-lg">
+          <Button 
+            type="submit" 
+            disabled={!title.trim() || !duration || parseInt(duration) <= 0}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all duration-300 hover:shadow-lg"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Task
           </Button>
