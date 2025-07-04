@@ -1,8 +1,7 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -79,19 +78,71 @@ const RetroGrid = ({
   );
 };
 
+const ScrollingSunMoon = () => {
+  const { scrollYProgress } = useScroll();
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // Transform scroll progress to rotation and position
+  const rotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
+  const yPosition = useTransform(scrollYProgress, [0, 1], [-100, 100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setIsDarkMode(hour < 6 || hour > 18);
+  }, []);
+
+  return (
+    <motion.div
+      className="fixed top-10 right-10 z-50 pointer-events-none"
+      style={{
+        y: yPosition,
+        rotate: rotation,
+        opacity: opacity,
+      }}
+    >
+      <motion.div
+        animate={{
+          scale: [1, 1.1, 1],
+          filter: isDarkMode 
+            ? ["drop-shadow(0 0 20px rgba(147, 197, 253, 0.8))", "drop-shadow(0 0 40px rgba(147, 197, 253, 1))", "drop-shadow(0 0 20px rgba(147, 197, 253, 0.8))"]
+            : ["drop-shadow(0 0 20px rgba(251, 191, 36, 0.8))", "drop-shadow(0 0 40px rgba(251, 191, 36, 1))", "drop-shadow(0 0 20px rgba(251, 191, 36, 0.8))"]
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        {isDarkMode ? (
+          <Moon className="w-16 h-16 text-blue-300" />
+        ) : (
+          <Sun className="w-16 h-16 text-yellow-400" />
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const GlassCard = ({ children, className, ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) => {
   return (
     <motion.div
       className={cn(
-        "relative backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl",
+        "relative backdrop-blur-xl bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden",
         className
       )}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
+      whileHover={{ 
+        scale: 1.02,
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+        transition: { duration: 0.2 }
+      }}
       {...props}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-2xl" />
       {children}
     </motion.div>
   );
@@ -103,6 +154,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
       <RetroGrid />
+      <ScrollingSunMoon />
       <SignedOut>
         <LandingPage />
       </SignedOut>
@@ -406,7 +458,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Plus className="w-5 h-5 text-blue-500" />
         Add New Task
       </h3>
@@ -416,7 +468,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             placeholder="Task title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl"
+            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -425,23 +477,25 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             placeholder="Duration (min)"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl"
+            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
           />
           <Select value={importance} onValueChange={(value: "low" | "medium" | "high") => setImportance(value)}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl">
+            <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-slate-800 border-slate-600">
               <SelectItem value="low">Low</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Task
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all duration-300 hover:shadow-lg">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
+          </Button>
+        </motion.div>
       </form>
     </GlassCard>
   );
@@ -460,7 +514,7 @@ const TaskList = ({ tasks, onDeleteTask }: { tasks: Task[]; onDeleteTask: (id: s
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Clock className="w-5 h-5 text-purple-500" />
         Your Tasks ({tasks.length})
       </h3>
@@ -472,7 +526,8 @@ const TaskList = ({ tasks, onDeleteTask }: { tasks: Task[]; onDeleteTask: (id: s
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+              whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.15)" }}
+              className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer"
             >
               <div className="flex-1">
                 <div className="font-medium text-white">{task.title}</div>
@@ -482,14 +537,16 @@ const TaskList = ({ tasks, onDeleteTask }: { tasks: Task[]; onDeleteTask: (id: s
                 <Badge className={getImportanceBadge(task.importance)}>
                   {task.importance}
                 </Badge>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onDeleteTask(task.id)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onDeleteTask(task.id)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all duration-300"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </motion.div>
               </div>
             </motion.div>
           ))}
@@ -532,29 +589,31 @@ const AiScheduleGenerator = ({ tasks }: { tasks: Task[] }) => {
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Sparkles className="w-5 h-5 text-pink-500" />
         AI Schedule Generator
       </h3>
       
-      <Button 
-        onClick={generateSchedule}
-        disabled={tasks.length === 0 || isGenerating}
-        className="w-full mb-4 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 rounded-xl"
-      >
-        {isGenerating ? (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-4 h-4 mr-2"
-          >
-            <Zap className="w-4 h-4" />
-          </motion.div>
-        ) : (
-          <Sparkles className="w-4 h-4 mr-2" />
-        )}
-        {isGenerating ? "Generating..." : "Generate My AI Schedule"}
-      </Button>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button 
+          onClick={generateSchedule}
+          disabled={tasks.length === 0 || isGenerating}
+          className="w-full mb-4 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 rounded-xl transition-all duration-300 hover:shadow-lg"
+        >
+          {isGenerating ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-4 h-4 mr-2"
+            >
+              <Zap className="w-4 h-4" />
+            </motion.div>
+          ) : (
+            <Sparkles className="w-4 h-4 mr-2" />
+          )}
+          {isGenerating ? "Generating..." : "Generate My AI Schedule"}
+        </Button>
+      </motion.div>
 
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {isGenerating ? (
@@ -574,7 +633,8 @@ const AiScheduleGenerator = ({ tasks }: { tasks: Task[] }) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-3 bg-white/5 rounded-lg border border-white/10 text-white"
+                whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                className="p-3 bg-white/5 rounded-lg border border-white/10 text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
               >
                 {item}
               </motion.div>
@@ -600,7 +660,7 @@ const WeatherCard = () => {
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Cloud className="w-5 h-5 text-blue-400" />
         Today's Weather
       </h3>
@@ -634,16 +694,18 @@ const ApodCard = () => {
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Star className="w-5 h-5 text-yellow-400" />
         NASA Image of the Day
       </h3>
       <div className="space-y-4">
         <div className="relative rounded-lg overflow-hidden">
-          <img 
+          <motion.img 
             src={apod.imageUrl} 
             alt={apod.title}
             className="w-full h-32 object-cover"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
@@ -666,7 +728,7 @@ const CalendarEventsCard = () => {
 
   return (
     <GlassCard className="p-6">
-      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Calendar className="w-5 h-5 text-green-400" />
         Today's Events
       </h3>
@@ -677,7 +739,8 @@ const CalendarEventsCard = () => {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+            className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer"
           >
             <div className="font-medium text-white">{event.title}</div>
             <div className="text-sm text-white/60">{event.time}</div>
