@@ -443,54 +443,48 @@ const Dashboard = () => {
 };
 
 const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => void }) => {
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState("");
-  const [importance, setImportance] = useState<"low" | "medium" | "high">("medium");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDuration, setTaskDuration] = useState("");
+  const [taskImportance, setTaskImportance] = useState<"low" | "medium" | "high">("medium");
+
+  console.log('TaskInputForm - Current state:', { 
+    title: taskTitle, 
+    duration: taskDuration, 
+    importance: taskImportance 
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('TaskInputForm - Form submitted with:', { title, duration, importance });
+    console.log('TaskInputForm - Form submitted');
     
-    if (title.trim() && duration && parseInt(duration) > 0) {
-      const taskData = {
-        title: title.trim(),
-        duration: parseInt(duration),
-        importance,
-      };
-      console.log('TaskInputForm - Calling onAddTask with:', taskData);
-      onAddTask(taskData);
-      
-      // Reset form
-      setTitle("");
-      setDuration("");
-      setImportance("medium");
-      console.log('TaskInputForm - Form reset completed');
-    } else {
-      console.log('TaskInputForm - Form validation failed:', { 
-        titleValid: !!title.trim(), 
-        durationValid: !!duration && parseInt(duration) > 0 
-      });
+    if (!taskTitle.trim()) {
+      console.log('TaskInputForm - Title is empty');
+      return;
     }
+    
+    const duration = parseInt(taskDuration);
+    if (!duration || duration <= 0) {
+      console.log('TaskInputForm - Invalid duration:', taskDuration);
+      return;
+    }
+
+    const taskData = {
+      title: taskTitle.trim(),
+      duration: duration,
+      importance: taskImportance,
+    };
+    
+    console.log('TaskInputForm - Calling onAddTask with:', taskData);
+    onAddTask(taskData);
+    
+    // Reset form
+    setTaskTitle("");
+    setTaskDuration("");
+    setTaskImportance("medium");
+    console.log('TaskInputForm - Form reset');
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log('TaskInputForm - Title changing from:', title, 'to:', newValue);
-    setTitle(newValue);
-  };
-
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log('TaskInputForm - Duration changing from:', duration, 'to:', newValue);
-    setDuration(newValue);
-  };
-
-  const handleImportanceChange = (value: "low" | "medium" | "high") => {
-    console.log('TaskInputForm - Importance changing from:', importance, 'to:', value);
-    setImportance(value);
-  };
-
-  console.log('TaskInputForm - Current state:', { title, duration, importance });
+  const isFormValid = taskTitle.trim() && taskDuration && parseInt(taskDuration) > 0;
 
   return (
     <GlassCard className="p-6">
@@ -501,10 +495,14 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Input
-            placeholder="Task title..."
-            value={title}
-            onChange={handleTitleChange}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
+            type="text"
+            placeholder="Enter task title..."
+            value={taskTitle}
+            onChange={(e) => {
+              console.log('TaskInputForm - Title input changed:', e.target.value);
+              setTaskTitle(e.target.value);
+            }}
+            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
             autoComplete="off"
           />
         </div>
@@ -512,28 +510,39 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           <Input
             type="number"
             placeholder="Duration (min)"
-            value={duration}
-            onChange={handleDurationChange}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
+            value={taskDuration}
+            onChange={(e) => {
+              console.log('TaskInputForm - Duration input changed:', e.target.value);
+              setTaskDuration(e.target.value);
+            }}
+            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
             min="1"
             autoComplete="off"
           />
-          <Select value={importance} onValueChange={handleImportanceChange}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300">
+          <Select value={taskImportance} onValueChange={(value: "low" | "medium" | "high") => {
+            console.log('TaskInputForm - Importance changed:', value);
+            setTaskImportance(value);
+          }}>
+            <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-600">
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="low">Low Priority</SelectItem>
+              <SelectItem value="medium">Medium Priority</SelectItem>
+              <SelectItem value="high">High Priority</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button 
             type="submit" 
-            disabled={!title.trim() || !duration || parseInt(duration) <= 0}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 hover:shadow-lg"
+            disabled={!isFormValid}
+            className={cn(
+              "w-full rounded-xl transition-all duration-300",
+              isFormValid 
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg" 
+                : "bg-gray-600 cursor-not-allowed opacity-50"
+            )}
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Task
