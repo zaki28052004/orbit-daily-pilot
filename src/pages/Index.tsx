@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -319,19 +318,20 @@ const Dashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const addTask = (taskData: Omit<Task, "id">) => {
-    console.log('Adding task:', taskData);
+    console.log('Adding task to dashboard:', taskData);
     const newTask: Task = {
       ...taskData,
       id: Date.now().toString(),
     };
     setTasks(prev => {
       const updatedTasks = [...prev, newTask];
-      console.log('Updated tasks:', updatedTasks);
+      console.log('Dashboard updated tasks:', updatedTasks);
       return updatedTasks;
     });
   };
 
   const deleteTask = (id: string) => {
+    console.log('Deleting task:', id);
     setTasks(prev => prev.filter(task => task.id !== id));
   };
 
@@ -442,7 +442,6 @@ const Dashboard = () => {
   );
 };
 
-// Task Input Component
 const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => void }) => {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
@@ -450,22 +449,48 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with:', { title, duration, importance });
+    console.log('TaskInputForm - Form submitted with:', { title, duration, importance });
     
     if (title.trim() && duration && parseInt(duration) > 0) {
-      onAddTask({
+      const taskData = {
         title: title.trim(),
         duration: parseInt(duration),
         importance,
-      });
+      };
+      console.log('TaskInputForm - Calling onAddTask with:', taskData);
+      onAddTask(taskData);
+      
+      // Reset form
       setTitle("");
       setDuration("");
       setImportance("medium");
-      console.log('Task added successfully');
+      console.log('TaskInputForm - Form reset completed');
     } else {
-      console.log('Form validation failed');
+      console.log('TaskInputForm - Form validation failed:', { 
+        titleValid: !!title.trim(), 
+        durationValid: !!duration && parseInt(duration) > 0 
+      });
     }
   };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    console.log('TaskInputForm - Title changing from:', title, 'to:', newValue);
+    setTitle(newValue);
+  };
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    console.log('TaskInputForm - Duration changing from:', duration, 'to:', newValue);
+    setDuration(newValue);
+  };
+
+  const handleImportanceChange = (value: "low" | "medium" | "high") => {
+    console.log('TaskInputForm - Importance changing from:', importance, 'to:', value);
+    setImportance(value);
+  };
+
+  console.log('TaskInputForm - Current state:', { title, duration, importance });
 
   return (
     <GlassCard className="p-6">
@@ -478,11 +503,9 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           <Input
             placeholder="Task title..."
             value={title}
-            onChange={(e) => {
-              console.log('Title changed:', e.target.value);
-              setTitle(e.target.value);
-            }}
+            onChange={handleTitleChange}
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
+            autoComplete="off"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -490,16 +513,12 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             type="number"
             placeholder="Duration (min)"
             value={duration}
-            onChange={(e) => {
-              console.log('Duration changed:', e.target.value);
-              setDuration(e.target.value);
-            }}
+            onChange={handleDurationChange}
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300"
+            min="1"
+            autoComplete="off"
           />
-          <Select value={importance} onValueChange={(value: "low" | "medium" | "high") => {
-            console.log('Importance changed:', value);
-            setImportance(value);
-          }}>
+          <Select value={importance} onValueChange={handleImportanceChange}>
             <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300">
               <SelectValue />
             </SelectTrigger>
@@ -514,7 +533,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           <Button 
             type="submit" 
             disabled={!title.trim() || !duration || parseInt(duration) <= 0}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all duration-300 hover:shadow-lg"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 hover:shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Task
@@ -525,7 +544,6 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
   );
 };
 
-// Task List Component
 const TaskList = ({ tasks, onDeleteTask }: { tasks: Task[]; onDeleteTask: (id: string) => void }) => {
   const getImportanceBadge = (importance: string) => {
     const variants = {
@@ -585,7 +603,6 @@ const TaskList = ({ tasks, onDeleteTask }: { tasks: Task[]; onDeleteTask: (id: s
   );
 };
 
-// AI Schedule Generator Component
 const AiScheduleGenerator = ({ tasks }: { tasks: Task[] }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [schedule, setSchedule] = useState<string[]>([]);
@@ -674,7 +691,6 @@ const AiScheduleGenerator = ({ tasks }: { tasks: Task[] }) => {
   );
 };
 
-// Weather Card Component
 const WeatherCard = () => {
   const [weather] = useState<WeatherData>({
     temperature: "22°C",
@@ -708,7 +724,6 @@ const WeatherCard = () => {
   );
 };
 
-// APOD Card Component
 const ApodCard = () => {
   const [apod] = useState<ApodData>({
     title: "Spiral Galaxy NGC 1566",
@@ -742,7 +757,6 @@ const ApodCard = () => {
   );
 };
 
-// Calendar Events Card Component
 const CalendarEventsCard = () => {
   const [events] = useState<CalendarEvent[]>([
     { id: "1", title: "Team Standup", time: "9:00 AM" },
