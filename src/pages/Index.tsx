@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useApiClient } from "@/hooks/useApiClient";
 import { 
   Plus, 
   Trash2, 
@@ -446,6 +448,9 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDuration, setTaskDuration] = useState("");
   const [taskImportance, setTaskImportance] = useState<"low" | "medium" | "high">("medium");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { post } = useApiClient();
 
   console.log('TaskInputForm - Current state:', { 
     title: taskTitle, 
@@ -453,7 +458,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
     importance: taskImportance 
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('TaskInputForm - Form submitted');
     
@@ -474,14 +479,36 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
       importance: taskImportance,
     };
     
-    console.log('TaskInputForm - Calling onAddTask with:', taskData);
-    onAddTask(taskData);
+    console.log('TaskInputForm - Submitting task with JWT token:', taskData);
+    setIsSubmitting(true);
     
-    // Reset form
-    setTaskTitle("");
-    setTaskDuration("");
-    setTaskImportance("medium");
-    console.log('TaskInputForm - Form reset');
+    try {
+      // Example of making an authenticated request to your backend
+      // Replace with your actual backend URL
+      const response = await post('/api/tasks', taskData);
+      
+      if (response.ok) {
+        console.log('Task saved to backend successfully');
+        onAddTask(taskData);
+        
+        // Reset form
+        setTaskTitle("");
+        setTaskDuration("");
+        setTaskImportance("medium");
+        console.log('TaskInputForm - Form reset');
+      }
+    } catch (error) {
+      console.error('Failed to save task to backend:', error);
+      // Still add to local state even if backend fails
+      onAddTask(taskData);
+      
+      // Reset form
+      setTaskTitle("");
+      setTaskDuration("");
+      setTaskImportance("medium");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = taskTitle.trim() && taskDuration && parseInt(taskDuration) > 0;
@@ -504,6 +531,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             }}
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
             autoComplete="off"
+            disabled={isSubmitting}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -518,11 +546,16 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
             min="1"
             autoComplete="off"
+            disabled={isSubmitting}
           />
-          <Select value={taskImportance} onValueChange={(value: "low" | "medium" | "high") => {
-            console.log('TaskInputForm - Importance changed:', value);
-            setTaskImportance(value);
-          }}>
+          <Select 
+            value={taskImportance} 
+            onValueChange={(value: "low" | "medium" | "high") => {
+              console.log('TaskInputForm - Importance changed:', value);
+              setTaskImportance(value);
+            }}
+            disabled={isSubmitting}
+          >
             <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40">
               <SelectValue />
             </SelectTrigger>
@@ -536,16 +569,31 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button 
             type="submit" 
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             className={cn(
               "w-full rounded-xl transition-all duration-300",
-              isFormValid 
+              isFormValid && !isSubmitting
                 ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg" 
                 : "bg-gray-600 cursor-not-allowed opacity-50"
             )}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
+            {isSubmitting ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-4 h-4 mr-2"
+                >
+                  <Zap className="w-4 h-4" />
+                </motion.div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </>
+            )}
           </Button>
         </motion.div>
       </form>
