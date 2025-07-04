@@ -2,7 +2,8 @@
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Cloud, Sparkles, Clock, CheckSquare, Sun } from "lucide-react";
+import { Calendar, Cloud, Sparkles, Clock, Sun } from "lucide-react";
+import TaskInputForm from "@/components/TaskInputForm";
 
 const Index = () => {
   return (
@@ -67,7 +68,7 @@ const LandingPage = () => {
           <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <CheckSquare className="w-6 h-6 text-purple-600" />
+                <Clock className="w-6 h-6 text-purple-600" />
               </div>
               <CardTitle className="text-lg">Task Management</CardTitle>
             </CardHeader>
@@ -131,7 +132,7 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <TaskInputCard />
+            <TaskInputForm />
             <ScheduleTimelineCard />
           </div>
 
@@ -144,31 +145,6 @@ const Dashboard = () => {
         </div>
       </main>
     </div>
-  );
-};
-
-const TaskInputCard = () => {
-  return (
-    <Card className="border-0 shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-blue-600" />
-          Add Your Tasks
-        </CardTitle>
-        <CardDescription>
-          Enter your tasks with duration and importance level
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="text-center py-8 text-gray-500">
-            <CheckSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Task input form will be implemented here</p>
-            <p className="text-sm">Requires backend integration</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 
