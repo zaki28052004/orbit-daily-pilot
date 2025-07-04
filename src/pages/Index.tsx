@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -514,7 +513,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
   const isFormValid = taskTitle.trim() && taskDuration && parseInt(taskDuration) > 0;
 
   return (
-    <GlassCard className="p-6">
+    <Card className="p-6 bg-slate-800/50 border-slate-700">
       <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
         <Plus className="w-5 h-5 text-blue-500" />
         Add New Task
@@ -529,7 +528,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
               console.log('TaskInputForm - Title input changed:', e.target.value);
               setTaskTitle(e.target.value);
             }}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
+            className="bg-slate-700/50 border-slate-600 placeholder:text-slate-400 text-white rounded-xl focus:bg-slate-700 transition-all duration-300 focus:border-slate-500"
             autoComplete="off"
             disabled={isSubmitting}
           />
@@ -543,7 +542,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
               console.log('TaskInputForm - Duration input changed:', e.target.value);
               setTaskDuration(e.target.value);
             }}
-            className="bg-white/10 border-white/20 placeholder:text-white/60 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40"
+            className="bg-slate-700/50 border-slate-600 placeholder:text-slate-400 text-white rounded-xl focus:bg-slate-700 transition-all duration-300 focus:border-slate-500"
             min="1"
             autoComplete="off"
             disabled={isSubmitting}
@@ -556,7 +555,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
             }}
             disabled={isSubmitting}
           >
-            <SelectTrigger className="bg-white/10 border-white/20 text-white rounded-xl focus:bg-white/20 transition-all duration-300 focus:border-white/40">
+            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white rounded-xl focus:bg-slate-700 transition-all duration-300 focus:border-slate-500">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-600">
@@ -597,7 +596,7 @@ const TaskInputForm = ({ onAddTask }: { onAddTask: (task: Omit<Task, "id">) => v
           </Button>
         </motion.div>
       </form>
-    </GlassCard>
+    </Card>
   );
 };
 
